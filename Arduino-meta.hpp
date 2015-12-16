@@ -204,7 +204,6 @@ static constexpr uint8_t digitalPinToBitMaskX() {
 	return digital_pin_to_bit_mask[pin];
 };
 
-
 template <uint16_t pin>
 static constexpr uint8_t digitalPinToPortX() {
 	static_assert(pin < sizeof(digital_pin_to_port), "invalid pin number");
@@ -400,6 +399,5 @@ static constexpr void (*pinModeDynamic)(uint8_t, uint8_t)  = *pinMode;
 #define pinMode(...) pinModeMulti<__VA_ARGS__>()
 static constexpr int (*digitalReadDynamic)(uint8_t)  = *digitalRead;
 #define digitalRead(pin) digitalReadX<pin>()
-
 
 #endif
