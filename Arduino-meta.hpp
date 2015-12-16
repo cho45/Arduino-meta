@@ -139,6 +139,44 @@ static constexpr uint8_t digital_pin_to_bit_mask[] = {
 	_BV(5),
 };
 
+static constexpr uint8_t digital_pin_to_timer[] = {
+	NOT_ON_TIMER, /* 0 - port D */
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+	// on the ATmega168, digital pin 3 has hardware pwm
+#if defined(__AVR_ATmega8__)
+	NOT_ON_TIMER,
+#else
+	TIMER2B,
+#endif
+	NOT_ON_TIMER,
+	// on the ATmega168, digital pins 5 and 6 have hardware pwm
+#if defined(__AVR_ATmega8__)
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+#else
+	TIMER0B,
+	TIMER0A,
+#endif
+	NOT_ON_TIMER,
+	NOT_ON_TIMER, /* 8 - port B */
+	TIMER1A,
+	TIMER1B,
+#if defined(__AVR_ATmega8__)
+	TIMER2,
+#else
+	TIMER2A,
+#endif
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+	NOT_ON_TIMER, /* 14 - port C */
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+	NOT_ON_TIMER,
+};
+
 template<uint8_t port>
 static constexpr volatile uint8_t* portModeRegisterX() {
 	static_assert(port < sizeof(port_to_mode), "invalid port number");
@@ -173,6 +211,82 @@ static constexpr uint8_t digitalPinToPortX() {
 	return digital_pin_to_port[pin];
 };
 
+template <uint16_t pin>
+static constexpr uint8_t digitalPinToTimerX() {
+	static_assert(pin < sizeof(digital_pin_to_timer), "invalid pin number");
+	return digital_pin_to_timer[pin];
+};
+
+#ifndef cbi
+#define cbi(sfr, bit) (_SFR_BYTE(sfr) &= ~_BV(bit))
+#endif
+#ifndef sbi
+#define sbi(sfr, bit) (_SFR_BYTE(sfr) |= _BV(bit))
+#endif
+
+template <uint8_t timer>
+static constexpr void turnOffPWM() {
+	switch (timer)
+	{
+		#if defined(TCCR1A) && defined(COM1A1)
+		case TIMER1A:   cbi(TCCR1A, COM1A1);    break;
+		#endif
+		#if defined(TCCR1A) && defined(COM1B1)
+		case TIMER1B:   cbi(TCCR1A, COM1B1);    break;
+		#endif
+		#if defined(TCCR1A) && defined(COM1C1)
+		case TIMER1C:   cbi(TCCR1A, COM1C1);    break;
+		#endif
+
+		#if defined(TCCR2) && defined(COM21)
+		case  TIMER2:   cbi(TCCR2, COM21);      break;
+		#endif
+
+		#if defined(TCCR0A) && defined(COM0A1)
+		case  TIMER0A:  cbi(TCCR0A, COM0A1);    break;
+		#endif
+
+		#if defined(TCCR0A) && defined(COM0B1)
+		case  TIMER0B:  cbi(TCCR0A, COM0B1);    break;
+		#endif
+		#if defined(TCCR2A) && defined(COM2A1)
+		case  TIMER2A:  cbi(TCCR2A, COM2A1);    break;
+		#endif
+		#if defined(TCCR2A) && defined(COM2B1)
+		case  TIMER2B:  cbi(TCCR2A, COM2B1);    break;
+		#endif
+
+		#if defined(TCCR3A) && defined(COM3A1)
+		case  TIMER3A:  cbi(TCCR3A, COM3A1);    break;
+		#endif
+		#if defined(TCCR3A) && defined(COM3B1)
+		case  TIMER3B:  cbi(TCCR3A, COM3B1);    break;
+		#endif
+		#if defined(TCCR3A) && defined(COM3C1)
+		case  TIMER3C:  cbi(TCCR3A, COM3C1);    break;
+		#endif
+
+		#if defined(TCCR4A) && defined(COM4A1)
+		case  TIMER4A:  cbi(TCCR4A, COM4A1);    break;
+		#endif
+		#if defined(TCCR4A) && defined(COM4B1)
+		case  TIMER4B:  cbi(TCCR4A, COM4B1);    break;
+		#endif
+		#if defined(TCCR4A) && defined(COM4C1)
+		case  TIMER4C:  cbi(TCCR4A, COM4C1);    break;
+		#endif
+		#if defined(TCCR4C) && defined(COM4D1)
+		case TIMER4D:	cbi(TCCR4C, COM4D1);	break;
+		#endif
+
+		#if defined(TCCR5A)
+		case  TIMER5A:  cbi(TCCR5A, COM5A1);    break;
+		case  TIMER5B:  cbi(TCCR5A, COM5B1);    break;
+		case  TIMER5C:  cbi(TCCR5A, COM5C1);    break;
+		#endif
+	}
+}
+
 // multiple bit set function with cheking port consistency
 
 /**
@@ -194,6 +308,8 @@ static constexpr void digitalWriteMulti_() {
 	static_assert(digitalPinToPortX<pin>() == port, "all port must be same");
 	constexpr uint8_t bit  = digitalPinToBitMaskX<pin>();
 	static_assert( (bit & mask) == 0, "already specified pin");
+	constexpr uint8_t timer = digitalPinToTimerX<pin>();
+	if (timer != NOT_ON_TIMER) turnOffPWM<timer>();
 	digitalWriteMulti_<
 		port,
 		mask | bit,
@@ -268,8 +384,10 @@ static constexpr void pinModeMulti() {
 template<uint16_t pin>
 static inline int digitalReadX() {
 	constexpr uint8_t port = digitalPinToPortX<pin>();
+	constexpr uint8_t timer = digitalPinToTimerX<pin>();
 	constexpr uint8_t bit = digitalPinToBitMaskX<pin>();
 	constexpr volatile uint8_t *in = portInputRegisterX<port>();
+	if (timer != NOT_ON_TIMER) turnOffPWM<timer>();
 	return (*in & bit) ? HIGH : LOW;
 }
 

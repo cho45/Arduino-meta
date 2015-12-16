@@ -86,12 +86,29 @@ test(<<-'EOS')
 	void expected() {
 		uint8_t oldSREG = SREG;
 		cli();
-		PORTD = (PORTD & 0b11110000) | (0b00000101);
+		PORTD = (PORTD & 0b11111000) | (0b00000101);
 		SREG = oldSREG;
 	}
 
 	void result() {
-		digitalWrite(0, HIGH, 1, LOW, 2, HIGH, 3, LOW);
+		digitalWrite(0, HIGH, 1, LOW, 2, HIGH);
+	}
+EOS
+
+# with pwm timer off
+test(<<-'EOS')
+	void expected() {
+		cbi(TCCR1A, COM1A1);
+		cbi(TCCR1A, COM1B1);
+
+		uint8_t oldSREG = SREG;
+		cli();
+		PORTB = (PORTB & 0b11111001) | (0b00000010);
+		SREG = oldSREG;
+	}
+
+	void result() {
+		digitalWrite(9, HIGH, 10, LOW);
 	}
 EOS
 
@@ -162,5 +179,18 @@ test(<<-'EOS')
 
 	void result() {
 		r = digitalRead(0);
+	}
+EOS
+
+# with pwm timer off
+test(<<-'EOS')
+	volatile uint8_t r;
+	void expected() {
+		cbi(TCCR1A, COM1A1);
+		r = PINB & 0b00000010 ? HIGH : LOW;
+	}
+
+	void result() {
+		r = digitalRead(9);
 	}
 EOS
