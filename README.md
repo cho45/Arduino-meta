@@ -60,6 +60,37 @@ In most every case, thease functions arguments are static so looking up tables i
 
 This header file solve it at compile time with C++ templates.
 
+Functions
+=========
+
+## digitalWrite(pin, value, ...)
+
+Write multiple HIGH or LOW values to specified pins at once.
+
+All pin must be reference to same port (eg. PORTB / PORTC / PORTD).
+If there are inconsistencies, it cause compile time error.
+
+All arguments must be constant.
+
+## pinMode(pin, mode, ...)
+
+Set multiple pin mode to INPUT, OUTPUT, or INPUT_PULLUP at once.
+
+All pin must be reference to same port (eg. DDRB / DDRC / DDRD).
+If there are inconsistencies, it cause compile time error.
+
+All arguments must be constant.
+
+## digitalRead(pin)
+
+Read digital value HIGH or LOW from pin.
+
+An argument must be constant.
+
+## digitalWriteDynamic(), pinModeDynamic(), digitalReadDynamic()
+
+The original Arduino function which look up table at runtime.
+
 Compile Time Error
 ==================
 
