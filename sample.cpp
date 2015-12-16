@@ -1,14 +1,34 @@
 #include <Arduino.h>
 #include "Arduino-meta.hpp"
 
+constexpr uint8_t LED_RED = 0;
+constexpr uint8_t LED_GREEN = 1;
+constexpr uint8_t LED_BLUE = 2;
+
 void setup() {
 	pinMode(LED_BUILTIN, OUTPUT);
+
+	// static version of pinMode()
+	pinMode(
+		LED_RED, OUTPUT,
+		LED_GREEN, OUTPUT,
+		LED_BLUE, OUTPUT
+	);
 }
 
 void loop() {
-	digitalWrite(LED_BUILTIN, LOW);
+	// this is also static
+	digitalWrite(LED_RED, HIGH, LED_GREEN, LOW, LED_BLUE, LOW);
 	delay(1000);
-	digitalWrite(LED_BUILTIN, HIGH);
+	digitalWrite(LED_RED, LOW, LED_GREEN, HIGH, LED_BLUE, LOW);
+	delay(1000);
+	digitalWrite(LED_RED, LOW, LED_GREEN, LOW, LED_BLUE, HIGH);
+	delay(1000);
+
+	// original version of digitalWrite()
+	digitalWriteDynamic(LED_BUILTIN, HIGH);
+	delay(1000);
+	digitalWriteDynamic(LED_BUILTIN, LOW);
 	delay(1000);
 }
 

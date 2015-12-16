@@ -6,14 +6,16 @@ A metaprogrammed Arduino functions.
 Synopsys
 ========
 
-	#include "Arduino.h"
+	#include <Arduino.h>
 	#include "Arduino-meta.hpp"
 
 	constexpr uint8_t LED_RED = 0;
 	constexpr uint8_t LED_GREEN = 1;
 	constexpr uint8_t LED_BLUE = 2;
 
-	void main() {
+	void setup() {
+		pinMode(LED_BUILTIN, OUTPUT);
+
 		// static version of pinMode()
 		pinMode(
 			LED_RED, OUTPUT,
@@ -37,6 +39,7 @@ Synopsys
 		digitalWriteDynamic(LED_BUILTIN, LOW);
 		delay(1000);
 	}
+
 
 Usage
 =====
