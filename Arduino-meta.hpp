@@ -225,7 +225,7 @@ static constexpr uint8_t digitalPinToTimerX() {
 #endif
 
 template <uint8_t timer>
-static constexpr void turnOffPWM() {
+static inline void turnOffPWM() {
 	switch (timer)
 	{
 		#if defined(TCCR1A) && defined(COM1A1)
@@ -295,7 +295,7 @@ static constexpr void turnOffPWM() {
  * vals = actual bit values for updating
  */
 template<uint8_t port, uint8_t mask, uint8_t vals>
-static constexpr void digitalWriteMulti_() {
+static inline void digitalWriteMulti_() {
 	volatile uint8_t *out = portOutputRegisterX<port>();
 	uint8_t oldSREG = SREG;
 	cli();
@@ -304,7 +304,7 @@ static constexpr void digitalWriteMulti_() {
 }
 
 template<uint8_t port, uint8_t mask, uint8_t vals, uint16_t pin, uint8_t val, uint16_t... Rest>
-static constexpr void digitalWriteMulti_() {
+static inline void digitalWriteMulti_() {
 	static_assert(digitalPinToPortX<pin>() == port, "all port must be same");
 	constexpr uint8_t bit  = digitalPinToBitMaskX<pin>();
 	static_assert( (bit & mask) == 0, "already specified pin");
@@ -319,7 +319,7 @@ static constexpr void digitalWriteMulti_() {
 }
 
 template<uint16_t pin, uint8_t val, uint16_t... Rest>
-static constexpr void digitalWriteMulti() {
+static inline void digitalWriteMulti() {
 	constexpr uint8_t port = digitalPinToPortX<pin>();
 	return digitalWriteMulti_<
 		port,
@@ -341,7 +341,7 @@ static constexpr void digitalWriteMulti() {
  * outVals = actual bit values for updating
  */
 template<uint8_t port, uint8_t modeMask, uint8_t modeVals, uint8_t outMask, uint8_t outVals>
-static constexpr void pinModeMulti_() {
+static inline void pinModeMulti_() {
 	volatile uint8_t *ddr = portModeRegisterX<port>();
 	volatile uint8_t *out = portOutputRegisterX<port>();
 	*ddr = (*ddr & ~modeMask) | modeVals;
@@ -351,7 +351,7 @@ static constexpr void pinModeMulti_() {
 }
 
 template<uint8_t port, uint8_t modeMask, uint8_t modeVals, uint8_t outMask, uint8_t outVals, uint16_t pin, uint8_t mode, uint16_t... Rest>
-static constexpr void pinModeMulti_() {
+static inline void pinModeMulti_() {
 	static_assert(digitalPinToPortX<pin>() == port, "all port must be same");
 	constexpr uint8_t bit = digitalPinToBitMaskX<pin>();
 	static_assert( (bit & modeMask) == 0, "already specified pin");
@@ -366,7 +366,7 @@ static constexpr void pinModeMulti_() {
 }
 
 template<uint16_t pin, uint8_t mode, uint16_t... Rest>
-static constexpr void pinModeMulti() {
+static inline void pinModeMulti() {
 	constexpr uint8_t port = digitalPinToPortX<pin>();
 	return pinModeMulti_<
 		port,
